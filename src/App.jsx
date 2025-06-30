@@ -1,23 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import LocationTest from './LocationTest'
-import Permission from './components/homepage/Permission'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useState } from 'react';
+import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
+import './App.css';
+import LocationTest from './LocationTest';
+import Permission from './components/homepage/Permission';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
   return (
     <>
       <Router>
+        {/* ✅ Navbar */}
+        <nav style={{
+          display: 'flex',
+          gap: '1rem',
+          padding: '1rem',
+          backgroundColor: '#f0f0f0',
+          borderBottom: '1px solid #ccc'
+        }}>
+          <Link to="/a">Location Test</Link>
+          <Link to="/b">Ekmc Clone Permissions</Link>
+        </nav>
+
+        {/* ✅ Routes */}
         <Routes>
           <Route path="/a" element={<LocationTest />} />
           <Route
             path="/b"
             element={
               <Permission
-                permissionsGranted={{ location: false, notification: false }} // 👈 Example values
+                permissionsGranted={{ location: false, notification: false }}
                 isInstalled={false}
                 onInstallClick={() => console.log("Install clicked")}
                 isCameraPermitted={false}
@@ -27,11 +41,10 @@ function App() {
               />
             }
           />
-
         </Routes>
       </Router>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
