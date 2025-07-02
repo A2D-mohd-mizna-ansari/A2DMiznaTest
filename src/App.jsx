@@ -5,6 +5,7 @@ import './App.css';
 import LocationTest from './LocationTest';
 import Permission from './components/homepage/Permission';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import OneSignalComponent from './components/OneSignal';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -27,14 +28,24 @@ function App() {
         {/* ✅ Routes */}
         <Routes>
           <Route path="/a" element={<LocationTest />} />
+          <Route path="/c" element={<OneSignalComponent />} />
           <Route
             path="/b"
             element={
               <Permission
-                permissionsGranted={{ location: false, notification: false }}
-                isInstalled={false}
-                onInstallClick={() => console.log("Install clicked")}
-                isCameraPermitted={false}
+                permissionsGranted={permissionsGranted}
+                isInstalled={isInstalled}
+                 onInstallClick={() => {
+                     const platform = detectPlatform()
+                     const urls = {
+                        android: import.meta.env.VITE_ANDROID_APP_URL,
+                        ios: import.meta.env.VITE_IOS_APP_URL
+                     }
+                     if (platform !== "web") {
+                        window.location.href = urls[platform]
+                     }
+                  }}
+                isCameraPermitted={true}
                 handleCameraPermission={() => console.log("Camera permission")}
                 handlePermissionsCanvasClose={() => console.log("Close permission canvas")}
                 setUserPos={(pos) => console.log("User position:", pos)}
