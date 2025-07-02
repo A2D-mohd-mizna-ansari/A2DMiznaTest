@@ -1,46 +1,47 @@
 // OneSignalComponent.jsx
 import React, { useEffect } from "react";
-import OneSignal from "react-onesignal";
 
 const OneSignalComponent = () => {
   useEffect(() => {
-    const initOneSignal = async () => {
-      await OneSignal.init({
-        appId: "06907524-9d59-48d3-aaac-078e174f07bd", // ✅ Your App ID
-        notifyButton: {
-          enable: true,
-        },
-        allowLocalhostAsSecureOrigin: true,
-      });
-
-      // Wait for OneSignal to be fully ready, then call global functions
+    // Wait until window.OneSignal is available
+    const initOneSignal = () => {
       window.OneSignal = window.OneSignal || [];
-      window.OneSignal.push(function () {
-        window.OneSignal.showSlidedownPrompt(); // ✅ Works here
+
+      window.OneSignal.push(() => {
+        window.OneSignal.init({
+          appId: "06907524-9d59-48d3-aaac-078e174f07bd",
+          notifyButton: { enable: true },
+          allowLocalhostAsSecureOrigin: true,
+        });
+
+        // ✅ Show prompt after init
+        window.OneSignal.showSlidedownPrompt();
       });
     };
 
     initOneSignal();
 
-    // Fake push notification every 30 sec
+    // Fake push every 30 seconds using global SDK
     const intervalId = setInterval(() => {
       if (window.OneSignal?.sendSelfNotification) {
         window.OneSignal.sendSelfNotification(
-          "🔔 New Notification",
-          "This is a test sent every 30s",
+          "🚀 New Message",
+          "This is a simulated notification every 30 seconds.",
           "https://a2-d-mizna-test.vercel.app",
           "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
         );
+      } else {
+        console.warn("sendSelfNotification not available yet.");
       }
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, []);
 
   return (
     <div>
-      <h2>🔔 OneSignal Notification Demo</h2>
-      <p>New test notifications will show every 30 seconds if permission is granted.</p>
+      <h2>🔔 OneSignal Global SDK Demo</h2>
+      <p>You'll see a notification every 30 seconds if permission is granted.</p>
     </div>
   );
 };
