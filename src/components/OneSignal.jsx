@@ -12,13 +12,13 @@ const NotificationComponent = () => {
     if (Notification.permission === "granted") {
       new Notification("Welcome!", {
         body: "You just opened the app!",
-        icon: "https://yoursite.com/icon.png",
+        icon: "https://a2deats.com/wp-content/uploads/2024/04/Frame-2.png.webp",
       });
 
       const notifyInterval = setInterval(() => {
         new Notification("Auto Notification", {
           body: "This is sent every 10 seconds.",
-          icon: "https://yoursite.com/icon.png",
+          icon: "https://a2deats.com/wp-content/uploads/2024/04/Frame-2.png.webp",
         });
       }, 10000);
 
