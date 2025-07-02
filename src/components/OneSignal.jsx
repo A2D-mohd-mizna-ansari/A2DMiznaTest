@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const NotificationComponent = () => {
   const [seconds, setSeconds] = useState(0);
   const [started, setStarted] = useState(false);
+
+  const notifyIntervalRef = useRef(null);
+  const timerRef = useRef(null);
 
   const startNotifications = async () => {
     if (Notification.permission !== "granted") {
@@ -15,29 +18,31 @@ const NotificationComponent = () => {
         icon: "https://a2deats.com/wp-content/uploads/2024/04/Frame-2.png.webp",
       });
 
-      const notifyInterval = setInterval(() => {
+      // Start notification interval
+      notifyIntervalRef.current = setInterval(() => {
         new Notification("Auto Notification", {
           body: "This is sent every 10 seconds.",
           icon: "https://a2deats.com/wp-content/uploads/2024/04/Frame-2.png.webp",
         });
       }, 10000);
 
-      const timer = setInterval(() => {
+      // Start timer
+      timerRef.current = setInterval(() => {
         setSeconds((prev) => prev + 1);
       }, 1000);
 
-      // Clear intervals when component unmounts
-      return () => {
-        clearInterval(timer);
-        clearInterval(notifyInterval);
-      };
+      setStarted(true);
     } else {
       alert("Notifications are blocked!");
     }
   };
 
   useEffect(() => {
-    // startNotifications moved to button click
+    // Cleanup on unmount
+    return () => {
+      if (notifyIntervalRef.current) clearInterval(notifyIntervalRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, []);
 
   return (
@@ -46,14 +51,7 @@ const NotificationComponent = () => {
       <p>App running for: <strong>{seconds}</strong> seconds</p>
       <p>Browser notifications sent every 10 seconds.</p>
       {!started && (
-        <button
-          onClick={() => {
-            startNotifications();
-            setStarted(true);
-          }}
-        >
-          Start Notifications
-        </button>
+        <button onClick={startNotifications}>Start Notifications</button>
       )}
     </div>
   );
