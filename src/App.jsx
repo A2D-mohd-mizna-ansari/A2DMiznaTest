@@ -5,7 +5,7 @@ import './App.css';
 import LocationTest from './LocationTest';
 import Permission from './components/homepage/Permission';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import OneSignalComponent from './components/OneSignal';
+import NotificationComponent from './components/OneSignal';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -29,7 +29,7 @@ function App() {
         {/* ✅ Routes */}
         <Routes>
           <Route path="/a" element={<LocationTest />} />
-          <Route path="/c" element={<OneSignalComponent />} />
+          <Route path="/c" element={<NotificationComponent />} />
           <Route
             path="/b"
             element={
