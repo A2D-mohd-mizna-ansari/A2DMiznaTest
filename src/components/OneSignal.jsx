@@ -13,20 +13,20 @@ const NotificationComponent = () => {
     }
 
     if (Notification.permission === "granted") {
-      new Notification("Welcome!", {
+      const welcomeNotification = new Notification("Welcome!", {
         body: "You just opened the app!",
         icon: "https://a2deats.com/wp-content/uploads/2024/04/Frame-2.png.webp",
       });
+      console.log("✅ Welcome notification sent");
 
-      // Start notification interval
       notifyIntervalRef.current = setInterval(() => {
-        new Notification("Auto Notification", {
+        const notification = new Notification("Auto Notification", {
           body: "This is sent every 10 seconds.",
           icon: "https://a2deats.com/wp-content/uploads/2024/04/Frame-2.png.webp",
         });
+        console.log("🔔 Auto notification sent at", new Date().toLocaleTimeString());
       }, 10000);
 
-      // Start timer
       timerRef.current = setInterval(() => {
         setSeconds((prev) => prev + 1);
       }, 1000);
@@ -34,14 +34,20 @@ const NotificationComponent = () => {
       setStarted(true);
     } else {
       alert("Notifications are blocked!");
+      console.warn("⚠️ Notifications permission was not granted");
     }
   };
 
   useEffect(() => {
-    // Cleanup on unmount
     return () => {
-      if (notifyIntervalRef.current) clearInterval(notifyIntervalRef.current);
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (notifyIntervalRef.current) {
+        clearInterval(notifyIntervalRef.current);
+        console.log("🛑 Cleared auto notification interval");
+      }
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        console.log("🛑 Cleared timer interval");
+      }
     };
   }, []);
 
