@@ -3,28 +3,29 @@ import OneSignal from "react-onesignal";
 
 const OneSignalComponent = () => {
   useEffect(() => {
-    const initOneSignal = async () => {
+    const init = async () => {
       await OneSignal.init({
-       appId: "06907524-9d59-48d3-aaac-078e174f07bd",
-        notifyButton: {
-          enable: true,
-        },
-        allowLocalhostAsSecureOrigin: true,
+        appId: "06907524-9d59-48d3-aaac-078e174f07bd", // ✅ Your actual App ID
+        notifyButton: { enable: true },
+        allowLocalhostAsSecureOrigin: true, // ✅ Needed for http://localhost
       });
 
-      OneSignal.showSlidedownPrompt();
+      const isPushEnabled = await OneSignal.isPushNotificationsEnabled();
+      if (!isPushEnabled) {
+        OneSignal.showSlidedownPrompt();
+      }
     };
 
-    initOneSignal();
+    init();
 
-    // Push every 30 sec (fake for now)
+    // ⏱️ Simulate push every 30 seconds (browser notification)
     const intervalId = setInterval(() => {
-      OneSignal.sendSelfNotification(
-        "🚀 Hello!",
-        "This is a demo message every 30 sec.",
-        "https://a2-d-mizna-test.vercel.app",
-        "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
-      );
+      if (Notification.permission === "granted") {
+        new Notification("🔔 New Message", {
+          body: "This is a simulated notification sent every 30 seconds.",
+          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827504.png",
+        });
+      }
     }, 30000);
 
     return () => clearInterval(intervalId);
@@ -32,8 +33,10 @@ const OneSignalComponent = () => {
 
   return (
     <div>
-      <h2>🔔 Push Notifications Demo</h2>
-      <p>You'll see a notification every 30 seconds if permission is granted.</p>
+      <h2>🔔 OneSignal Push Notification Demo</h2>
+      <p>
+        If you've granted permission, a new simulated notification will appear every 30 seconds.
+      </p>
     </div>
   );
 };
