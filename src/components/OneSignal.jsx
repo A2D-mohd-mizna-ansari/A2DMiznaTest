@@ -1,4 +1,3 @@
-// OneSignal.jsx
 import React, { useEffect } from "react";
 import OneSignal from "react-onesignal";
 
@@ -6,12 +5,11 @@ const OneSignalComponent = () => {
   useEffect(() => {
     const initOneSignal = async () => {
       await OneSignal.init({
-        appId: "Y06907524-9d59-48d3-aaac-078e174f07bd", // Replace with your real OneSignal App ID
-        safari_web_id: "YOUR_SAFARI_WEB_ID", // Optional, if supporting Safari
+       appId: "06907524-9d59-48d3-aaac-078e174f07bd",
         notifyButton: {
           enable: true,
         },
-        allowLocalhostAsSecureOrigin: true, // Needed for local development
+        allowLocalhostAsSecureOrigin: true,
       });
 
       OneSignal.showSlidedownPrompt();
@@ -19,23 +17,23 @@ const OneSignalComponent = () => {
 
     initOneSignal();
 
-    // Fake notification trigger every 30 seconds
+    // Push every 30 sec (fake for now)
     const intervalId = setInterval(() => {
       OneSignal.sendSelfNotification(
-        "🚀 New Notification!",
-        "This is a test message triggered every 30 seconds.",
-        "https://yourwebsite.com", // URL to open on click
-        "https://cdn-icons-png.flaticon.com/512/1827/1827504.png" // Optional icon
+        "🚀 Hello!",
+        "This is a demo message every 30 sec.",
+        "https://a2-d-mizna-test.vercel.app",
+        "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
       );
     }, 30000);
 
-    return () => clearInterval(intervalId); // cleanup
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
     <div>
       <h2>🔔 Push Notifications Demo</h2>
-      <p>You will get a notification every 30 seconds if permissions are granted.</p>
+      <p>You'll see a notification every 30 seconds if permission is granted.</p>
     </div>
   );
 };

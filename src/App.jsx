@@ -23,6 +23,7 @@ function App() {
         }}>
           <Link to="/a">Location Test</Link>
           <Link to="/b">Ekmc Clone Permissions</Link>
+          <Link to="/c">One Signal</Link>
         </nav>
 
         {/* ✅ Routes */}
