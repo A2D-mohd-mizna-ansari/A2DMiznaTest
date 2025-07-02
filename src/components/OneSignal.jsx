@@ -32,7 +32,7 @@ const OneSignalComponent = () => {
           "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
         );
       }
-    }, 30000);
+    }, 10000);
 
     return () => clearInterval(intervalId);
   }, []);
