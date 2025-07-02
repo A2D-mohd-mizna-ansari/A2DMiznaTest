@@ -22,18 +22,19 @@ const OneSignalComponent = () => {
     initOneSignal();
 
     // Fake push every 30 seconds using global SDK
-    const intervalId = setInterval(() => {
-      if (window.OneSignal?.sendSelfNotification) {
-        window.OneSignal.sendSelfNotification(
-          "🚀 New Message",
-          "This is a simulated notification every 30 seconds.",
-          "https://a2-d-mizna-test.vercel.app",
-          "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
-        );
-      } else {
-        console.warn("sendSelfNotification not available yet.");
-      }
-    }, 30000);
+  const intervalId = setInterval(() => {
+  window.OneSignal = window.OneSignal || [];
+  window.OneSignal.push(() => {
+    if (window.OneSignal.sendSelfNotification) {
+      window.OneSignal.sendSelfNotification(
+        "🔔 Notification",
+        "Triggered every 30s",
+        "https://a2-d-mizna-test.vercel.app",
+        "https://cdn-icons-png.flaticon.com/512/1827/1827504.png"
+      );
+    }
+  });
+}, 10000);
 
     return () => clearInterval(intervalId);
   }, []);
