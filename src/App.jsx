@@ -33,19 +33,10 @@ function App() {
             path="/b"
             element={
               <Permission
-                permissionsGranted={permissionsGranted}
-                isInstalled={isInstalled}
-                 onInstallClick={() => {
-                     const platform = detectPlatform()
-                     const urls = {
-                        android: import.meta.env.VITE_ANDROID_APP_URL,
-                        ios: import.meta.env.VITE_IOS_APP_URL
-                     }
-                     if (platform !== "web") {
-                        window.location.href = urls[platform]
-                     }
-                  }}
-                isCameraPermitted={true}
+                  permissionsGranted={{ location: false, notification: false }}Add commentMore actions
+                isInstalled={false}
+                onInstallClick={() => console.log("Install clicked")}
+                isCameraPermitted={false}
                 handleCameraPermission={() => console.log("Camera permission")}
                 handlePermissionsCanvasClose={() => console.log("Close permission canvas")}
                 setUserPos={(pos) => console.log("User position:", pos)}
