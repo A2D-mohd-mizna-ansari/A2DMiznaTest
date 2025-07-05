@@ -6,8 +6,8 @@ const TruecallerVerify = () => {
   const logRef = useRef(null);
   const requestNonce = useRef("req_" + Date.now());
 
-  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f"; // Use your actual key
-  const partnerName = "Test"; // Display name shown in UI
+  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
+  const partnerName = "Test";
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
 
@@ -22,7 +22,7 @@ const TruecallerVerify = () => {
 
   const handleVerifyClick = () => {
     const nonce = requestNonce.current;
-    setStatus("Starting Truecaller verification...");
+    setStatus("Starting verification...");
     addLog(`🔑 Nonce: ${nonce}`);
 
     const params = new URLSearchParams({
@@ -43,26 +43,24 @@ const TruecallerVerify = () => {
     });
 
     const deepLink = `truecallersdk://truesdk/web_verify?${params.toString()}`;
-    const webFallbackUrl = `https://web-sdk.truecaller.com/vi/verify?${params.toString()}`;
+    const webFallback = `https://web-sdk.truecaller.com/vi/verify?${params.toString()}`;
 
-    addLog(`📲 Trying deep link: ${deepLink}`);
-    setStatus("Trying to open Truecaller app...");
+    addLog(`🔗 Trying deep link: ${deepLink}`);
+    setStatus("Trying Truecaller app...");
 
-    // Try to open app
-    const timeout = setTimeout(() => {
-      addLog("⚠️ Truecaller app not opened. Redirecting to web fallback...");
-      setStatus("Opening Truecaller web verification...");
-      window.location.href = webFallbackUrl;
-    }, 2000);
-
-    // Try to open the app (if installed)
+    // Try app via iframe (hidden)
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
     iframe.src = deepLink;
     document.body.appendChild(iframe);
 
-    // Clean up
-    setTimeout(() => document.body.removeChild(iframe), 2200);
+    // Fallback after 2 seconds if app not opened
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+      addLog(`🌐 App likely not installed. Opening Web UI: ${webFallback}`);
+      setStatus("Opening Truecaller Web UI...");
+      window.location.href = webFallback;
+    }, 2000);
   };
 
   return (
