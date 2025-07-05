@@ -4,16 +4,18 @@ const TruecallerVerify = () => {
   const [status, setStatus] = useState("");
   const [logs, setLogs] = useState([]);
   const logRef = useRef(null);
-  const requestNonce = useRef("req_" + Date.now());
 
-  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
-  const partnerName = "Test";
+  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f"; // YOUR PARTNER KEY
+  const partnerName = "Test"; // Name shown in Truecaller UI
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
-  const redirectUri = "https://a2-d-mizna-test.vercel.app/truecaller/callback"; // Make sure this is your frontend handler
+  const redirectUri = "https://a2-d-mizna-test.vercel.app/truecaller/callback"; // Must be exact and HTTPS
+
+  const requestNonce = useRef("req_" + Date.now()); // generate once per session
 
   const addLog = (msg) => {
-    setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} → ${msg}`]);
+    const logEntry = `${new Date().toLocaleTimeString()} → ${msg}`;
+    setLogs((prev) => [...prev, logEntry]);
     setTimeout(() => {
       if (logRef.current) {
         logRef.current.scrollTop = logRef.current.scrollHeight;
@@ -24,7 +26,7 @@ const TruecallerVerify = () => {
   const handleVerifyClick = () => {
     const nonce = requestNonce.current;
     setStatus("Attempting Truecaller verification...");
-    addLog(`🔑 Nonce: ${nonce}`);
+    addLog(`🔑 Nonce generated: ${nonce}`);
 
     const deepLink = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
       nonce
@@ -38,17 +40,19 @@ const TruecallerVerify = () => {
 
     const fallbackWebUrl = `https://api4.truecaller.com/v1/auth?requestNonce=${encodeURIComponent(
       nonce
-    )}&partnerKey=${encodeURIComponent(partnerKey)}&redirectUri=${encodeURIComponent(redirectUri)}`;
+    )}&partnerKey=${encodeURIComponent(
+      partnerKey
+    )}&redirectUri=${encodeURIComponent(redirectUri)}`;
 
-    // Open deep link
+    // Try opening Truecaller app
     window.location.href = deepLink;
 
-    // Start fallback timer
+    // Fallback after 2 seconds if app not opened
     setTimeout(() => {
-      addLog("⚠️ App not opened, redirecting to fallback web UI...");
-      setStatus("Fallback triggered. Opening Truecaller Web UI...");
+      addLog("⚠️ App likely not installed, switching to web fallback.");
+      setStatus("Fallback: Opening Truecaller Web UI...");
       window.location.href = fallbackWebUrl;
-    }, 2000); // if app not opened in 2 sec, fallback
+    }, 2000);
   };
 
   return (
