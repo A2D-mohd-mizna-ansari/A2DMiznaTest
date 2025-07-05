@@ -17,22 +17,22 @@ const TruecallerVerify = () => {
     }, 10);
   };
 
-  // Intercept console messages to also show in logs div
+  // Intercept console messages to also add them to logs div
   useEffect(() => {
     const originalLog = console.log;
     const originalWarn = console.warn;
     const originalError = console.error;
 
     console.log = (...args) => {
-      addLog("LOG: " + args.map(String).join(" "));
+      addLog("LOG: " + args.join(" "));
       originalLog(...args);
     };
     console.warn = (...args) => {
-      addLog("WARN: " + args.map(String).join(" "));
+      addLog("WARN: " + args.join(" "));
       originalWarn(...args);
     };
     console.error = (...args) => {
-      addLog("ERROR: " + args.map(String).join(" "));
+      addLog("ERROR: " + args.join(" "));
       originalError(...args);
     };
 
@@ -63,6 +63,8 @@ const TruecallerVerify = () => {
     )}&termsUrl=${encodeURIComponent(
       termsUrl
     )}&loginPrefix=Verify%20with%20Truecaller&ctaPrefix=Continue%20with%20Truecaller&ctaColor=%231e88e5&ctaTextColor=%23ffffff&btnShape=round&skipOption=Use%20another%20method&ttl=60000`;
+
+    addLog("LOG: Redirecting to Truecaller deep link: " + deepLink);
 
     let fallbackTriggered = false;
 
@@ -95,7 +97,7 @@ const TruecallerVerify = () => {
               if (attempts >= 10) {
                 clearInterval(poll);
                 setStatus("❌ Timed out. Try again.");
-                addLog("❌ Gave up after 10 tries.");
+                addLog("❌ Polling ended after 10 attempts without success.");
               }
             }
           } catch (err) {
@@ -108,7 +110,7 @@ const TruecallerVerify = () => {
       }
     };
 
-    // Detect if app was opened
+    // Detect if app was opened by listening to visibility and focus events
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         addLog("📱 visibilitychange → Document hidden, assuming app opened.");
@@ -125,7 +127,6 @@ const TruecallerVerify = () => {
     });
 
     addLog("🚀 Redirecting to deep link...");
-    console.log("Redirecting to Truecaller deep link:", deepLink);
     window.location.href = deepLink;
 
     const fallbackTimer = setTimeout(() => {
@@ -176,7 +177,7 @@ const TruecallerVerify = () => {
           textAlign: "left",
         }}
       >
-        <strong>Debug Logs:</strong>
+        <strong>Debug Logs1:</strong>
         <br />
         {logs.map((log, i) => (
           <div key={i}>{log}</div>
