@@ -1,36 +1,41 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+// pages/TruecallerCallback.jsx
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 const TruecallerCallback = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [message, setMessage] = useState('Verifying with Truecaller...');
 
   useEffect(() => {
     const payload = searchParams.get('payload');
     const signature = searchParams.get('signature');
 
     if (!payload || !signature) {
-      alert('Missing payload or signature');
+      setMessage('Missing payload or signature in callback URL');
       return;
     }
 
-    axios.post('https://a2dmiznatest.onrender.com/api/v1/truecaller-login', { payload, signature })
-      .then(res => {
-        if (res.data.success) {
-          alert('Login successful!');
-          navigate('/dashboard');
-        } else {
-          alert('Login failed');
-        }
+    axios
+      .post('https://a2dmiznatest.onrender.com/api/v1/truecaller-login', {
+        payload,
+        signature,
       })
-      .catch(err => {
-        console.error('Error:', err);
-        alert('Something went wrong');
+      .then((res) => {
+        setMessage(`Welcome, ${res.data.userDetails?.name || 'user'}!`);
+        // Optionally store token or redirect user here
+      })
+      .catch((err) => {
+        console.error(err);
+        setMessage('Verification failed. Please try again.');
       });
   }, []);
 
-  return <p>Verifying Truecaller...</p>;
+  return (
+    <div style={{ padding: '2rem' }}>
+      <h2>{message}</h2>
+    </div>
+  );
 };
 
 export default TruecallerCallback;

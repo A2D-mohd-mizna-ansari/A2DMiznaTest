@@ -1,10 +1,13 @@
+// pages/TruecallerLogin.jsx
 import React from 'react';
 
 const TruecallerLogin = () => {
+  const isAndroidChrome = () => {
+    return /Android/.test(navigator.userAgent) && /Chrome/.test(navigator.userAgent);
+  };
+
   const generateNonce = () => {
-    const array = new Uint8Array(16);
-    window.crypto.getRandomValues(array);
-    return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+    return crypto.randomUUID(); // Standard format
   };
 
   const handleLogin = () => {
@@ -17,9 +20,17 @@ const TruecallerLogin = () => {
   };
 
   return (
-    <div>
+    <div style={{ padding: '2rem' }}>
       <h2>Login with Truecaller</h2>
-      <button onClick={handleLogin}>Login</button>
+      {isAndroidChrome() ? (
+        <button onClick={handleLogin} style={{ padding: '10px 20px', fontSize: '16px' }}>
+          Login with Truecaller
+        </button>
+      ) : (
+        <p style={{ color: 'red' }}>
+          Truecaller login is only available on Android Chrome with the Truecaller app installed.
+        </p>
+      )}
     </div>
   );
 };
