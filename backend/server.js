@@ -1,47 +1,22 @@
 // server.js
 import express from 'express';
-import bodyParser from 'body-parser';
-import axios from 'axios';
+import mongoose from 'mongoose';
 import cors from 'cors';
+import truecallerRoutes from './routes/truecaller.js'; // Note the `.js` extension
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(cors({
+  origin: 'https://a2-d-mizna-test.vercel.app',
+  credentials: true
+}));
+app.use('/truecaller', truecallerRoutes);
 
-const TRUECALLER_PARTNER_KEY = 'NdYnR43e796fb8a024fa697e2bed406d6e82f';
-
-app.post('/api/v1/truecaller-login', async (req, res) => {
-  const { payload, signature } = req.body;
-
-  if (!payload || !signature) {
-    return res.status(400).json({ success: false, error: 'Missing payload or signature' });
-  }
-
-  try {
-    const response = await axios.post(
-      'https://api4.truecaller.com/v1/verify',
-      { payload, signature },
-      {
-        headers: {
-          'Authorization': `Bearer ${TRUECALLER_PARTNER_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    const userDetails = response.data;
-    return res.status(200).json({ success: true, userDetails });
-  } catch (err) {
-    console.error('Truecaller verification failed:', err.response?.data || err.message);
-    return res.status(500).json({
-      success: false,
-      error: 'Verification failed',
-      details: err.response?.data || err.message,
-    });
-  }
+mongoose.connect('mongodb+srv://miznaansari:2sAc7wuwKHHzfnoh@mizna.jfncd.mongodb.net/truecallerDB?retryWrites=true&w=majority&appName=Mizna', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
+mongoose.connection.once('open', () => console.log('MongoDB connected'));
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-});
+const PORT = 4000;
+app.listen(PORT, () => console.log(`Backend listening on ${PORT}`));

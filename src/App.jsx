@@ -1,18 +1,19 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import TruecallerLogin from './truecaller/TruecallerLogin';
-import TruecallerCallback from './truecaller/TruecallerCallback';
-import Dashboard from './truecaller/Dashboard';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import LoginPage from './LoginPage';
+import TruecallerCallback from './TruecallerCallback';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route path="/" element={<TruecallerLogin />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/truecaller/callback" element={<TruecallerCallback />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<div>Welcome! See console for profile data.</div>} />
+        <Route path="/privacy" element={<div>Privacy Policy here</div>} />
+        <Route path="/terms" element={<div>Terms & Conditions here</div>} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
