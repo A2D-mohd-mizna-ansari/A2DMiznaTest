@@ -48,11 +48,11 @@ app.post("/truecaller/callback", (req, res) => {
   console.log("✅ Received verification from Truecaller:", data);
 
   if (!data.requestNonce) {
-    return res.status(400).send("Missing requestNonce");
+    return res.status(400).json({ success: false, error: "Missing requestNonce" });
   }
 
   verificationMap.set(data.requestNonce, data);
-  res.send("✅ Verification received!");
+  res.json({ success: true, message: "✅ Verification received!" }); // ✅ Fix here
 });
 
 // ✅ Polling endpoint to check verification status
