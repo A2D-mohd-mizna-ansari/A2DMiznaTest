@@ -10,7 +10,6 @@ const TruecallerVerify = () => {
   const partnerName = "Test";
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
-  const redirectUri = "https://a2-d-mizna-test.vercel.app/truecaller/callback"; // Must match Truecaller config
 
   const addLog = (msg) => {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} → ${msg}`]);
@@ -23,10 +22,10 @@ const TruecallerVerify = () => {
 
   const handleVerifyClick = () => {
     const nonce = requestNonce.current;
-    setStatus("Attempting Truecaller verification...");
-    addLog(`🔑 Nonce: ${nonce}`);
+    setStatus("Redirecting to Truecaller...");
+    addLog(`🔑 Nonce generated: ${nonce}`);
 
-    const deepLink = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
+    const truecallerURL = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
       nonce
     )}&partnerKey=${encodeURIComponent(partnerKey)}&partnerName=${encodeURIComponent(
       partnerName
@@ -36,19 +35,10 @@ const TruecallerVerify = () => {
       termsUrl
     )}&loginPrefix=Verify%20with%20Truecaller&ctaPrefix=Continue%20with%20Truecaller&ctaColor=%231e88e5&ctaTextColor=%23ffffff&btnShape=round&skipOption=Use%20another%20method&ttl=60000`;
 
-    const fallbackWebUrl = `https://api4.truecaller.com/v1/auth?requestNonce=${encodeURIComponent(
-      nonce
-    )}&partnerKey=${encodeURIComponent(partnerKey)}&redirectUri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = truecallerURL;
 
-    // Try to open deep link first
-    window.location.href = deepLink;
-
-    // If user doesn't have Truecaller app, fallback after short delay
-    setTimeout(() => {
-      addLog("⚠️ App not opened, redirecting to fallback web UI...");
-      setStatus("Fallback triggered. Opening Truecaller Web UI...");
-      window.location.href = fallbackWebUrl;
-    }, 1500); // Adjust delay as needed
+    // No need for fallback, Truecaller will manage it internally
+    addLog("🌐 Attempted to open Truecaller. If not installed, fallback UI should appear automatically.");
   };
 
   return (
