@@ -4,14 +4,11 @@ const TruecallerVerify = () => {
   const [status, setStatus] = useState("");
   const [logs, setLogs] = useState([]);
 
-  // Helper to add logs
   const addLog = (msg) => {
     setLogs((prev) => [...prev, msg]);
   };
 
   useEffect(() => {
-    // Override console.log, warn, error to capture logs in our state
-
     const originalLog = console.log;
     const originalWarn = console.warn;
     const originalError = console.error;
@@ -29,7 +26,6 @@ const TruecallerVerify = () => {
       originalError(...args);
     };
 
-    // Clean up override on unmount
     return () => {
       console.log = originalLog;
       console.warn = originalWarn;
@@ -48,7 +44,7 @@ const TruecallerVerify = () => {
     console.log("Starting Truecaller verification...");
     setStatus("Starting Truecaller verification...");
 
-    const truecallerDeepLink =
+    const deepLink =
       `truecallersdk://truesdk/web_verify?` +
       `type=btmsheet` +
       `&requestNonce=${encodeURIComponent(requestNonce)}` +
@@ -73,33 +69,55 @@ const TruecallerVerify = () => {
         clearTimeout(fallbackTimer);
         console.log("Truecaller app opened. Please complete verification.");
         setStatus("Truecaller app opened. Please complete verification.");
+
+        // 🧠 Start polling
+        let attempts = 0;
+        const poll = setInterval(async () => {
+          console.log(`Polling status for nonce: ${requestNonce}`);
+          try {
+            const res = await fetch(
+              `https://a2dmiznatest.onrender.com/verify-status?nonce=${requestNonce}`
+            );
+            const result = await res.json();
+            if (result.verified) {
+              clearInterval(poll);
+              console.log("✅ Number verified:", result.data);
+              setStatus("✅ Number verified successfully!");
+            } else {
+              attempts++;
+              if (attempts > 10) {
+                clearInterval(poll);
+                setStatus("❌ Timed out. Try again.");
+                console.warn("Timed out waiting for verification.");
+              }
+            }
+          } catch (err) {
+            clearInterval(poll);
+            console.error("Error while polling:", err);
+            setStatus("Error while checking verification.");
+          }
+        }, 3000);
       }
     };
 
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
-        console.log("Document hidden, assuming Truecaller opened.");
+        console.log("Document hidden. Assuming Truecaller opened.");
         cancelFallback();
       }
     });
 
-    window.addEventListener("blur", () => {
-      console.log("Window lost focus, assuming Truecaller opened.");
-      cancelFallback();
-    });
-    window.addEventListener("pagehide", () => {
-      console.log("Page hide event, assuming Truecaller opened.");
-      cancelFallback();
-    });
+    window.addEventListener("blur", cancelFallback);
+    window.addEventListener("pagehide", cancelFallback);
 
-    console.log("Redirecting to Truecaller deep link:", truecallerDeepLink);
-    window.location.href = truecallerDeepLink;
+    console.log("Redirecting to Truecaller deep link:", deepLink);
+    window.location.href = deepLink;
 
     const fallbackTimer = setTimeout(() => {
       if (!fallbackTriggered) {
         fallbackTriggered = true;
-        console.warn("Truecaller app not detected. Redirecting to manual verification...");
-        setStatus("Truecaller app not detected. Redirecting to manual verification...");
+        console.warn("Truecaller app not detected. Redirecting to fallback.");
+        setStatus("Redirecting to manual verification...");
         window.location.href = callbackUrl + "?fallback=true";
       }
     }, 3000);
@@ -122,7 +140,7 @@ const TruecallerVerify = () => {
       >
         Verify My Number
       </button>
-      <div style={{ marginTop: "1.5rem", fontWeight: "bold" }}>{status}</div>
+      <div style={{ marginTop: "1rem", fontWeight: "bold" }}>{status}</div>
 
       <div
         style={{
@@ -147,6 +165,24 @@ const TruecallerVerify = () => {
         {logs.map((log, i) => (
           <div key={i}>{log}</div>
         ))}
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(logs.join("\n")).then(() => {
+              alert("Logs copied to clipboard!");
+            });
+          }}
+          style={{
+            marginTop: "1rem",
+            padding: "0.5rem 1rem",
+            backgroundColor: "#444",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Copy Logs
+        </button>
       </div>
     </div>
   );
