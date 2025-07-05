@@ -6,9 +6,8 @@ const TruecallerVerify = () => {
   const logRef = useRef(null);
   const requestNonce = useRef("req_" + Date.now());
 
-  // Replace with your actual config
-  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
-  const partnerName = "Test";
+  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f"; // Use your actual key
+  const partnerName = "Test"; // Display name shown in UI
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
 
@@ -23,34 +22,52 @@ const TruecallerVerify = () => {
 
   const handleVerifyClick = () => {
     const nonce = requestNonce.current;
-    setStatus("🔁 Opening Truecaller Web UI...");
+    setStatus("Starting Truecaller verification...");
     addLog(`🔑 Nonce: ${nonce}`);
 
-    const webUIUrl = [
-      "https://web-sdk.truecaller.com/v1/verify?type=btmsheet",
-      `&requestNonce=${nonce}`,
-      `&partnerKey=${partnerKey}`,
-      `&partnerName=${partnerName}`,
-      `&lang=en`,
-      `&privacyUrl=${encodeURIComponent(privacyUrl)}`,
-      `&termsUrl=${encodeURIComponent(termsUrl)}`,
-      `&loginPrefix=Verify%20with%20Truecaller`,
-      `&ctaPrefix=Continue%20with%20Truecaller`,
-      `&ctaColor=%231e88e5`,
-      `&ctaTextColor=%23ffffff`,
-      `&btnShape=round`,
-      `&skipOption=Use%20another%20method`,
-      `&ttl=60000`
-    ].join("");
+    const params = new URLSearchParams({
+      type: "btmsheet",
+      requestNonce: nonce,
+      partnerKey: partnerKey,
+      partnerName: partnerName,
+      lang: "en",
+      privacyUrl: privacyUrl,
+      termsUrl: termsUrl,
+      loginPrefix: "Verify with Truecaller",
+      ctaPrefix: "Continue with Truecaller",
+      ctaColor: "#1e88e5",
+      ctaTextColor: "#ffffff",
+      btnShape: "round",
+      skipOption: "Use another method",
+      ttl: "60000",
+    });
 
-    addLog(`🌐 Opening Web UI: ${webUIUrl}`);
-    window.location.href = webUIUrl;
+    const deepLink = `truecallersdk://truesdk/web_verify?${params.toString()}`;
+    const webFallbackUrl = `https://web-sdk.truecaller.com/vi/verify?${params.toString()}`;
+
+    addLog(`📲 Trying deep link: ${deepLink}`);
+    setStatus("Trying to open Truecaller app...");
+
+    // Try to open app
+    const timeout = setTimeout(() => {
+      addLog("⚠️ Truecaller app not opened. Redirecting to web fallback...");
+      setStatus("Opening Truecaller web verification...");
+      window.location.href = webFallbackUrl;
+    }, 2000);
+
+    // Try to open the app (if installed)
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = deepLink;
+    document.body.appendChild(iframe);
+
+    // Clean up
+    setTimeout(() => document.body.removeChild(iframe), 2200);
   };
 
   return (
     <div style={{ textAlign: "center", padding: "2rem" }}>
       <h1>📲 Verify with Truecaller</h1>
-
       <button
         onClick={handleVerifyClick}
         style={{
@@ -60,12 +77,11 @@ const TruecallerVerify = () => {
           fontSize: "1.2rem",
           border: "none",
           borderRadius: "8px",
-          cursor: "pointer"
+          cursor: "pointer",
         }}
       >
         Verify My Number
       </button>
-
       <div style={{ marginTop: "1rem", fontWeight: "bold" }}>{status}</div>
 
       <div
@@ -74,6 +90,7 @@ const TruecallerVerify = () => {
           marginTop: "2rem",
           padding: "1rem",
           height: "300px",
+          width: "100%",
           maxWidth: "450px",
           overflowY: "scroll",
           backgroundColor: "#111",
@@ -81,8 +98,9 @@ const TruecallerVerify = () => {
           fontFamily: "monospace",
           fontSize: "12px",
           borderRadius: "8px",
-          margin: "0 auto",
-          textAlign: "left"
+          marginLeft: "auto",
+          marginRight: "auto",
+          textAlign: "left",
         }}
       >
         <strong>Debug Logs:</strong>
@@ -90,7 +108,6 @@ const TruecallerVerify = () => {
         {logs.map((log, i) => (
           <div key={i}>{log}</div>
         ))}
-
         <button
           onClick={() => {
             navigator.clipboard.writeText(logs.join("\n")).then(() => {
@@ -104,7 +121,7 @@ const TruecallerVerify = () => {
             color: "#fff",
             border: "none",
             borderRadius: "4px",
-            cursor: "pointer"
+            cursor: "pointer",
           }}
         >
           📋 Copy Logs
