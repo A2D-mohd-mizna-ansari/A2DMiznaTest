@@ -13,9 +13,22 @@ const verificationMap = new Map();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Log all incoming requests
+// Enhanced request logger middleware
 app.use((req, res, next) => {
   console.log(`➡️  ${req.method} ${req.originalUrl}`);
+
+  if (Object.keys(req.query).length > 0) {
+    console.log("📦 Query Params:", req.query);
+  }
+
+  if (Object.keys(req.params).length > 0) {
+    console.log("📦 Route Params:", req.params);
+  }
+
+  if (["POST", "PUT", "PATCH"].includes(req.method) && Object.keys(req.body).length > 0) {
+    console.log("📝 Body:", req.body);
+  }
+
   next();
 });
 
