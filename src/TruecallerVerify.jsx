@@ -1,7 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TruecallerVerify = () => {
   const [status, setStatus] = useState("");
+  const [logs, setLogs] = useState([]);
+
+  // Helper to add logs
+  const addLog = (msg) => {
+    setLogs((prev) => [...prev, msg]);
+  };
+
+  useEffect(() => {
+    // Override console.log, warn, error to capture logs in our state
+
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+
+    console.log = (...args) => {
+      addLog("LOG: " + args.join(" "));
+      originalLog(...args);
+    };
+    console.warn = (...args) => {
+      addLog("WARN: " + args.join(" "));
+      originalWarn(...args);
+    };
+    console.error = (...args) => {
+      addLog("ERROR: " + args.join(" "));
+      originalError(...args);
+    };
+
+    // Clean up override on unmount
+    return () => {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      console.error = originalError;
+    };
+  }, []);
 
   const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
   const partnerName = "MiznaTest";
@@ -11,6 +45,7 @@ const TruecallerVerify = () => {
   const requestNonce = "req_" + Date.now();
 
   const handleVerifyClick = () => {
+    console.log("Starting Truecaller verification...");
     setStatus("Starting Truecaller verification...");
 
     const truecallerDeepLink =
@@ -36,25 +71,34 @@ const TruecallerVerify = () => {
       if (!fallbackTriggered) {
         fallbackTriggered = true;
         clearTimeout(fallbackTimer);
+        console.log("Truecaller app opened. Please complete verification.");
         setStatus("Truecaller app opened. Please complete verification.");
       }
     };
 
-    // Listen for different signs that Truecaller was opened
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden) cancelFallback();
+      if (document.hidden) {
+        console.log("Document hidden, assuming Truecaller opened.");
+        cancelFallback();
+      }
     });
 
-    window.addEventListener("blur", cancelFallback);
-    window.addEventListener("pagehide", cancelFallback);
+    window.addEventListener("blur", () => {
+      console.log("Window lost focus, assuming Truecaller opened.");
+      cancelFallback();
+    });
+    window.addEventListener("pagehide", () => {
+      console.log("Page hide event, assuming Truecaller opened.");
+      cancelFallback();
+    });
 
-    // Trigger the Truecaller app
+    console.log("Redirecting to Truecaller deep link:", truecallerDeepLink);
     window.location.href = truecallerDeepLink;
 
-    // Fallback after 3 seconds
     const fallbackTimer = setTimeout(() => {
       if (!fallbackTriggered) {
         fallbackTriggered = true;
+        console.warn("Truecaller app not detected. Redirecting to manual verification...");
         setStatus("Truecaller app not detected. Redirecting to manual verification...");
         window.location.href = callbackUrl + "?fallback=true";
       }
@@ -79,6 +123,31 @@ const TruecallerVerify = () => {
         Verify My Number
       </button>
       <div style={{ marginTop: "1.5rem", fontWeight: "bold" }}>{status}</div>
+
+      <div
+        style={{
+          marginTop: "2rem",
+          padding: "1rem",
+          height: "200px",
+          width: "100%",
+          maxWidth: "400px",
+          overflowY: "scroll",
+          backgroundColor: "#222",
+          color: "#eee",
+          fontFamily: "monospace",
+          fontSize: "12px",
+          borderRadius: "8px",
+          marginLeft: "auto",
+          marginRight: "auto",
+          textAlign: "left",
+        }}
+      >
+        <strong>Debug Logs:</strong>
+        <br />
+        {logs.map((log, i) => (
+          <div key={i}>{log}</div>
+        ))}
+      </div>
     </div>
   );
 };
