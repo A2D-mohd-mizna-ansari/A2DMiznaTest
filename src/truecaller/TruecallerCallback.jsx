@@ -15,7 +15,7 @@ const TruecallerCallback = () => {
       return;
     }
 
-    axios.post('http://localhost:4000/api/v1/truecaller-login', { payload, signature })
+    axios.post('https://a2dmiznatest.onrender.com/api/v1/truecaller-login', { payload, signature })
       .then(res => {
         if (res.data.success) {
           alert('Login successful!');
