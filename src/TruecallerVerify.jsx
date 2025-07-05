@@ -1,13 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const TruecallerVerify = () => {
   const [status, setStatus] = useState("");
   const [logs, setLogs] = useState([]);
+  const logRef = useRef(null);
+  const requestNonce = useRef("req_" + Date.now());
 
+  // Add logs into the debug box
   const addLog = (msg) => {
-    setLogs((prev) => [...prev, msg]);
+    setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} → ${msg}`]);
+    // Auto scroll to bottom
+    setTimeout(() => {
+      if (logRef.current) {
+        logRef.current.scrollTop = logRef.current.scrollHeight;
+      }
+    }, 10);
   };
 
+  // Intercept console messages
   useEffect(() => {
     const originalLog = console.log;
     const originalWarn = console.warn;
@@ -34,32 +44,25 @@ const TruecallerVerify = () => {
   }, []);
 
   const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
-  const partnerName = "MiznaTest";
+  const partnerName = "Test";
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
   const callbackUrl = "https://a2dmiznatest.onrender.com/truecaller/callback";
-  const requestNonce = "req_" + Date.now();
 
   const handleVerifyClick = () => {
-    console.log("Starting Truecaller verification...");
+    const nonce = requestNonce.current;
+    addLog(`🔑 Generated nonce: ${nonce}`);
     setStatus("Starting Truecaller verification...");
 
-    const deepLink =
-      `truecallersdk://truesdk/web_verify?` +
-      `type=btmsheet` +
-      `&requestNonce=${encodeURIComponent(requestNonce)}` +
-      `&partnerKey=${encodeURIComponent(partnerKey)}` +
-      `&partnerName=${encodeURIComponent(partnerName)}` +
-      `&lang=en` +
-      `&privacyUrl=${encodeURIComponent(privacyUrl)}` +
-      `&termsUrl=${encodeURIComponent(termsUrl)}` +
-      `&loginPrefix=Verify%20with%20Truecaller` +
-      `&ctaPrefix=Continue%20with%20Truecaller` +
-      `&ctaColor=%231e88e5` +
-      `&ctaTextColor=%23ffffff` +
-      `&btnShape=round` +
-      `&skipOption=Use%20another%20method` +
-      `&ttl=60000`;
+    const deepLink = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
+      nonce
+    )}&partnerKey=${encodeURIComponent(partnerKey)}&partnerName=${encodeURIComponent(
+      partnerName
+    )}&lang=en&privacyUrl=${encodeURIComponent(
+      privacyUrl
+    )}&termsUrl=${encodeURIComponent(
+      termsUrl
+    )}&loginPrefix=Verify%20with%20Truecaller&ctaPrefix=Continue%20with%20Truecaller&ctaColor=%231e88e5&ctaTextColor=%23ffffff&btnShape=round&skipOption=Use%20another%20method&ttl=60000`;
 
     let fallbackTriggered = false;
 
@@ -67,57 +70,65 @@ const TruecallerVerify = () => {
       if (!fallbackTriggered) {
         fallbackTriggered = true;
         clearTimeout(fallbackTimer);
-        console.log("Truecaller app opened. Please complete verification.");
         setStatus("Truecaller app opened. Please complete verification.");
+        addLog("✅ App opened, starting polling...");
 
-        // 🧠 Start polling
+        // Start polling
         let attempts = 0;
         const poll = setInterval(async () => {
-          console.log(`Polling status for nonce: ${requestNonce}`);
+          attempts++;
+          addLog(`📡 Polling attempt #${attempts} for nonce: ${nonce}`);
           try {
             const res = await fetch(
-              `https://a2dmiznatest.onrender.com/verify-status?nonce=${requestNonce}`
+              `https://a2dmiznatest.onrender.com/verify-status?nonce=${nonce}`
             );
             const result = await res.json();
+
             if (result.verified) {
               clearInterval(poll);
-              console.log("✅ Number verified:", result.data);
+              console.log("✅ Verification success:", result.data);
               setStatus("✅ Number verified successfully!");
             } else {
-              attempts++;
-              if (attempts > 10) {
+              addLog("❓ Still not verified.");
+              if (attempts >= 10) {
                 clearInterval(poll);
                 setStatus("❌ Timed out. Try again.");
-                console.warn("Timed out waiting for verification.");
+                addLog("❌ Gave up after 10 tries.");
               }
             }
           } catch (err) {
             clearInterval(poll);
-            console.error("Error while polling:", err);
-            setStatus("Error while checking verification.");
+            console.error("Error during polling:", err);
+            setStatus("⚠️ Error while checking verification.");
           }
         }, 3000);
       }
     };
 
+    // Detect if app was opened
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
-        console.log("Document hidden. Assuming Truecaller opened.");
+        addLog("📱 visibilitychange → Document hidden, assuming app opened.");
         cancelFallback();
       }
     });
+    window.addEventListener("blur", () => {
+      addLog("📱 blur → Window lost focus.");
+      cancelFallback();
+    });
+    window.addEventListener("pagehide", () => {
+      addLog("📱 pagehide → Page hide event.");
+      cancelFallback();
+    });
 
-    window.addEventListener("blur", cancelFallback);
-    window.addEventListener("pagehide", cancelFallback);
-
-    console.log("Redirecting to Truecaller deep link:", deepLink);
+    addLog("🚀 Redirecting to deep link...");
     window.location.href = deepLink;
 
     const fallbackTimer = setTimeout(() => {
       if (!fallbackTriggered) {
         fallbackTriggered = true;
-        console.warn("Truecaller app not detected. Redirecting to fallback.");
-        setStatus("Redirecting to manual verification...");
+        addLog("⚠️ App not detected. Going to fallback.");
+        setStatus("Redirecting to fallback...");
         window.location.href = callbackUrl + "?fallback=true";
       }
     }, 3000);
@@ -125,7 +136,7 @@ const TruecallerVerify = () => {
 
   return (
     <div style={{ textAlign: "center", padding: "2rem" }}>
-      <h1>Verify with Truecaller</h1>
+      <h1>📲 Verify with Truecaller</h1>
       <button
         style={{
           backgroundColor: "#1e88e5",
@@ -143,14 +154,15 @@ const TruecallerVerify = () => {
       <div style={{ marginTop: "1rem", fontWeight: "bold" }}>{status}</div>
 
       <div
+        ref={logRef}
         style={{
           marginTop: "2rem",
           padding: "1rem",
-          height: "200px",
+          height: "250px",
           width: "100%",
           maxWidth: "400px",
           overflowY: "scroll",
-          backgroundColor: "#222",
+          backgroundColor: "#111",
           color: "#eee",
           fontFamily: "monospace",
           fontSize: "12px",
@@ -160,7 +172,7 @@ const TruecallerVerify = () => {
           textAlign: "left",
         }}
       >
-        <strong>Debug Logs:</strong>
+        <strong>Debug Logs1:</strong>
         <br />
         {logs.map((log, i) => (
           <div key={i}>{log}</div>
@@ -168,7 +180,7 @@ const TruecallerVerify = () => {
         <button
           onClick={() => {
             navigator.clipboard.writeText(logs.join("\n")).then(() => {
-              alert("Logs copied to clipboard!");
+              alert("✅ Logs copied to clipboard!");
             });
           }}
           style={{
@@ -181,7 +193,7 @@ const TruecallerVerify = () => {
             cursor: "pointer",
           }}
         >
-          Copy Logs
+          📋 Copy Logs
         </button>
       </div>
     </div>
