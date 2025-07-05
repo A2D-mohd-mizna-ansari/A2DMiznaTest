@@ -20,6 +20,32 @@ const TruecallerVerify = () => {
     }, 10);
   };
 
+  const checkVerificationStatus = async (nonce) => {
+    try {
+      addLog("📡 Checking verification status from backend...");
+      const res = await fetch(
+        `https://a2dmiznatest.onrender.com/verify-status?nonce=${encodeURIComponent(nonce)}`
+      );
+      if (!res.ok) {
+        addLog(`❌ Backend responded with status: ${res.status}`);
+        setStatus("❌ Verification failed. Please try again.");
+        return;
+      }
+
+      const data = await res.json();
+      if (data.verified) {
+        addLog(`✅ User verified: ${JSON.stringify(data.data)}`);
+        setStatus("✅ Verified successfully!");
+      } else {
+        addLog("⏳ Not verified yet. User may have closed the flow.");
+        setStatus("❌ Verification not completed.");
+      }
+    } catch (err) {
+      addLog("❌ Error fetching verification status: " + err.message);
+      setStatus("⚠️ Failed to verify user.");
+    }
+  };
+
   const handleVerifyClick = () => {
     const nonce = requestNonce.current;
     setStatus("Redirecting to Truecaller...");
@@ -35,10 +61,14 @@ const TruecallerVerify = () => {
       termsUrl
     )}&loginPrefix=Verify%20with%20Truecaller&ctaPrefix=Continue%20with%20Truecaller&ctaColor=%231e88e5&ctaTextColor=%23ffffff&btnShape=round&skipOption=Use%20another%20method&ttl=60000`;
 
+    addLog(`🌐 Opening Truecaller deep link: ${truecallerURL}`);
     window.location.href = truecallerURL;
 
-    // No need for fallback, Truecaller will manage it internally
-    addLog("🌐 Attempted to open Truecaller. If not installed, fallback UI should appear automatically.");
+    // Wait and check backend (user will return to site via redirect)
+    setTimeout(() => {
+      addLog("⏳ Waiting 5s before checking verification status...");
+      checkVerificationStatus(nonce);
+    }, 5000);
   };
 
   return (
@@ -66,9 +96,9 @@ const TruecallerVerify = () => {
         style={{
           marginTop: "2rem",
           padding: "1rem",
-          height: "250px",
+          height: "300px",
           width: "100%",
-          maxWidth: "400px",
+          maxWidth: "450px",
           overflowY: "scroll",
           backgroundColor: "#111",
           color: "#eee",
