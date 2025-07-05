@@ -1,18 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 
 const TruecallerVerify = () => {
   const [status, setStatus] = useState("");
   const [logs, setLogs] = useState([]);
   const logRef = useRef(null);
   const requestNonce = useRef("req_" + Date.now());
-  const fallbackTimer = useRef(null);
-  const pollInterval = useRef(null);
 
   const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
   const partnerName = "Test";
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
-  const callbackUrl = "https://a2dmiznatest.onrender.com/truecaller/callback";
 
   const addLog = (msg) => {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} → ${msg}`]);
@@ -23,47 +20,12 @@ const TruecallerVerify = () => {
     }, 10);
   };
 
-  useEffect(() => {
-    const originalLog = console.log;
-    const originalWarn = console.warn;
-    const originalError = console.error;
-
-    console.log = (...args) => {
-      addLog("LOG: " + args.map(String).join(" "));
-      originalLog(...args);
-    };
-    console.warn = (...args) => {
-      addLog("WARN: " + args.map(String).join(" "));
-      originalWarn(...args);
-    };
-    console.error = (...args) => {
-      addLog("ERROR: " + args.map(String).join(" "));
-      originalError(...args);
-    };
-
-    return () => {
-      console.log = originalLog;
-      console.warn = originalWarn;
-      console.error = originalError;
-    };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("blur", onBlur);
-      window.removeEventListener("pagehide", onPageHide);
-      if (pollInterval.current) clearInterval(pollInterval.current);
-      if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
-    };
-  }, []);
-
-  const handleVerifyClick = async () => {
+  const handleVerifyClick = () => {
     const nonce = requestNonce.current;
-    setStatus("Starting Truecaller verification...");
+    setStatus("Redirecting to Truecaller...");
     addLog(`🔑 Nonce: ${nonce}`);
 
-    const deepLink = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
+    const truecallerURL = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
       nonce
     )}&partnerKey=${encodeURIComponent(partnerKey)}&partnerName=${encodeURIComponent(
       partnerName
@@ -73,79 +35,7 @@ const TruecallerVerify = () => {
       termsUrl
     )}&loginPrefix=Verify%20with%20Truecaller&ctaPrefix=Continue%20with%20Truecaller&ctaColor=%231e88e5&ctaTextColor=%23ffffff&btnShape=round&skipOption=Use%20another%20method&ttl=60000`;
 
-    let fallbackTriggered = false;
-
-    const startPolling = () => {
-      setStatus("Truecaller app opened. Polling...");
-      let attempts = 0;
-
-      pollInterval.current = setInterval(async () => {
-        attempts++;
-        addLog(`📡 Poll attempt #${attempts}`);
-
-        try {
-          const res = await fetch(
-            `https://a2dmiznatest.onrender.com/verify-status?nonce=${nonce}`
-          );
-          const result = await res.json();
-
-          if (result.verified) {
-            clearInterval(pollInterval.current);
-            setStatus("✅ Verified!");
-            addLog("✅ Verified data: " + JSON.stringify(result.data));
-          } else {
-            addLog("⏳ Not verified yet...");
-            if (attempts >= 10) {
-              clearInterval(pollInterval.current);
-              setStatus("❌ Timeout. Try again.");
-            }
-          }
-        } catch (err) {
-          clearInterval(pollInterval.current);
-          setStatus("⚠️ Polling error.");
-          addLog("❌ Polling error: " + err.message);
-        }
-      }, 3000);
-    };
-
-    const cancelFallback = () => {
-      if (!fallbackTriggered) {
-        fallbackTriggered = true;
-        if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
-        startPolling();
-      }
-    };
-
-    const onVisibilityChange = () => {
-      if (document.hidden) {
-        addLog("📱 Document hidden → app opened.");
-        cancelFallback();
-      }
-    };
-    const onBlur = () => {
-      addLog("📱 Window blur → app likely opened.");
-      cancelFallback();
-    };
-    const onPageHide = () => {
-      addLog("📱 Page hide → assume app switch.");
-      cancelFallback();
-    };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("pagehide", onPageHide);
-
-    addLog("🚀 Opening Truecaller deep link...");
-    window.location.href = deepLink;
-
-    fallbackTimer.current = setTimeout(() => {
-      if (!fallbackTriggered) {
-        fallbackTriggered = true;
-        addLog("⚠️ App not detected. Redirecting to fallback.");
-        setStatus("Redirecting to fallback...");
-        window.location.href = callbackUrl + "?fallback=true";
-      }
-    }, 3000);
+    window.location.href = truecallerURL;
   };
 
   return (
