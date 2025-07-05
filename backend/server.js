@@ -1,4 +1,4 @@
-// server.js (ESM)
+// server.js (ESM syntax)
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -6,14 +6,14 @@ import cors from "cors";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// In-memory store (use DB for production)
+// In-memory store for verification data (use DB in prod)
 const verificationMap = new Map();
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Enhanced request logger middleware
+// Request logger middleware
 app.use((req, res, next) => {
   console.log(`➡️  ${req.method} ${req.originalUrl}`);
 
@@ -32,17 +32,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Truecaller fallback handler
+// Truecaller fallback handler (when user does not have Truecaller app)
 app.get("/truecaller/callback", (req, res) => {
   if (req.query.fallback === "true") {
     console.log("⚠️  Fallback triggered: user does not have Truecaller app.");
+    // Redirect user to fallback page or show fallback info
     return res.redirect("https://a2-d-mizna-test.vercel.app/fallback");
   }
-
   res.status(400).send("❌ Invalid access to /truecaller/callback");
 });
 
-// Truecaller verification handler
+// Truecaller verification handler (receives POST callback from Truecaller SDK)
 app.post("/truecaller/callback", (req, res) => {
   const data = req.body;
   console.log("✅ Received verification from Truecaller:", data);
@@ -51,11 +51,14 @@ app.post("/truecaller/callback", (req, res) => {
     return res.status(400).send("Missing requestNonce");
   }
 
+  // Store the verification data keyed by nonce
   verificationMap.set(data.requestNonce, data);
+
+  // Respond back to Truecaller SDK
   res.send("✅ Verification received!");
 });
 
-// Polling endpoint to check verification status
+// Polling endpoint to check verification status by nonce
 app.get("/verify-status", (req, res) => {
   const { nonce } = req.query;
 
