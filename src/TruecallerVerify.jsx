@@ -32,24 +32,33 @@ const TruecallerVerify = () => {
 
     let fallbackTriggered = false;
 
-    const onVisibilityChange = () => {
-      if (document.hidden) {
+    const cancelFallback = () => {
+      if (!fallbackTriggered) {
+        fallbackTriggered = true;
         clearTimeout(fallbackTimer);
         setStatus("Truecaller app opened. Please complete verification.");
       }
     };
 
-    document.addEventListener("visibilitychange", onVisibilityChange);
+    // Listen for different signs that Truecaller was opened
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) cancelFallback();
+    });
 
+    window.addEventListener("blur", cancelFallback);
+    window.addEventListener("pagehide", cancelFallback);
+
+    // Trigger the Truecaller app
     window.location.href = truecallerDeepLink;
 
+    // Fallback after 3 seconds
     const fallbackTimer = setTimeout(() => {
       if (!fallbackTriggered) {
         fallbackTriggered = true;
         setStatus("Truecaller app not detected. Redirecting to manual verification...");
         window.location.href = callbackUrl + "?fallback=true";
       }
-    }, 1500);
+    }, 3000);
   };
 
   return (
