@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import TruecallerLogin from './TruecallerLogin';
-import TruecallerCallback from './TruecallerCallback';
-import Dashboard from './Dashboard';
+import TruecallerLogin from './truecaller/TruecallerLogin';
+import TruecallerCallback from './truecaller/TruecallerCallback';
+import Dashboard from './truecaller/Dashboard';
 
 function App() {
   return (
