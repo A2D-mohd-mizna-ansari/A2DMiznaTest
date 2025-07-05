@@ -7,6 +7,13 @@ const TruecallerVerify = () => {
   const requestNonce = useRef("req_" + Date.now());
   const pollIntervalRef = useRef(null);
   const fallbackTimerRef = useRef(null);
+  let fallbackTriggered = false;
+
+  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
+  const partnerName = "Test";
+  const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
+  const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
+  const callbackUrl = "https://a2dmiznatest.onrender.com/truecaller/callback";
 
   const addLog = (msg) => {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} → ${msg}`]);
@@ -17,7 +24,6 @@ const TruecallerVerify = () => {
     }, 10);
   };
 
-  // Override console to capture logs into UI
   useEffect(() => {
     const originalLog = console.log;
     const originalWarn = console.warn;
@@ -44,7 +50,6 @@ const TruecallerVerify = () => {
   }, []);
 
   useEffect(() => {
-    // Cleanup on unmount
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
@@ -54,15 +59,6 @@ const TruecallerVerify = () => {
     };
   }, []);
 
-  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
-  const partnerName = "Test";
-  const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
-  const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
-  const callbackUrl = "https://a2dmiznatest.onrender.com/truecaller/callback";
-
-  let fallbackTriggered = false;
-
-  // Event handlers for fallback detection
   const cancelFallback = () => {
     if (!fallbackTriggered) {
       fallbackTriggered = true;
@@ -79,10 +75,12 @@ const TruecallerVerify = () => {
       cancelFallback();
     }
   };
+
   const onBlur = () => {
     addLog("📱 blur → Window lost focus.");
     cancelFallback();
   };
+
   const onPageHide = () => {
     addLog("📱 pagehide → Page hidden.");
     cancelFallback();
@@ -91,9 +89,8 @@ const TruecallerVerify = () => {
   const startPolling = () => {
     addLog("🔄 startPolling() initiated");
     setStatus("Truecaller app opened. Starting polling...");
-    addLog("ℹ️ Status set: Truecaller app opened. Starting polling...");
-
     let attempts = 0;
+
     pollIntervalRef.current = setInterval(async () => {
       attempts++;
       const pollUrl = `https://a2dmiznatest.onrender.com/verify-status?nonce=${requestNonce.current}`;
@@ -107,7 +104,7 @@ const TruecallerVerify = () => {
         if (result.verified) {
           clearInterval(pollIntervalRef.current);
           setStatus("✅ Number verified successfully!");
-          addLog("✅ Verification successful with data: " + JSON.stringify(result.data));
+          addLog("✅ Verification success: " + JSON.stringify(result.data));
         } else {
           addLog("❓ Not yet verified.");
           if (attempts >= 10) {
@@ -124,58 +121,45 @@ const TruecallerVerify = () => {
     }, 3000);
   };
 
-  const callCallbackAPI = async (payload) => {
-    addLog("⬆️ Sending POST to callback API: " + callbackUrl);
-    addLog("📦 Payload: " + JSON.stringify(payload));
-
-    try {
-      const res = await fetch(callbackUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const result = await res.json();
-      addLog("✅ Callback API response: " + JSON.stringify(result));
-    } catch (err) {
-      addLog("❌ Callback API error: " + err.message);
-    }
-  };
-
   const handleVerifyClick = () => {
-    addLog("🔍 handleVerifyClick initiated");
     const nonce = requestNonce.current;
-    addLog(`🔑 Generated nonce: ${nonce}`);
+    addLog("🔑 Nonce: " + nonce);
 
     setStatus("Starting Truecaller verification...");
     addLog("ℹ️ Status set to: Starting Truecaller verification...");
 
-    // Construct Truecaller deep link with parameters
+    // Setup fallback detection
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("pagehide", onPageHide);
+
     const deepLink = `truecallersdk://truesdk/web_verify?partner_key=${partnerKey}&partner_name=${encodeURIComponent(
       partnerName
     )}&nonce=${nonce}&privacy_url=${encodeURIComponent(
       privacyUrl
     )}&terms_url=${encodeURIComponent(termsUrl)}&callback_url=${encodeURIComponent(callbackUrl)}`;
 
-    addLog("🔗 Truecaller deep link: " + deepLink);
+    const intentLink = `intent://truesdk/web_verify?partner_key=${partnerKey}&partner_name=${encodeURIComponent(
+      partnerName
+    )}&nonce=${nonce}&privacy_url=${encodeURIComponent(
+      privacyUrl
+    )}&terms_url=${encodeURIComponent(
+      termsUrl
+    )}&callback_url=${encodeURIComponent(
+      callbackUrl
+    )}#Intent;scheme=truecallersdk;package=com.truecaller;end`;
 
-    // Setup fallback event listeners
-    addLog("📎 Adding event listeners for fallback detection");
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("pagehide", onPageHide);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const linkToUse = isAndroid ? intentLink : deepLink;
 
-    // Launch Truecaller app
-    addLog("🚀 Launching Truecaller via deep link...");
-    window.location.href = deepLink;
+    addLog(`🔗 Launching Truecaller using: ${linkToUse}`);
+    window.location.href = linkToUse;
 
-    // We do NOT have phone number here yet. Truecaller will send callback POST on verification.
-
-    // Setup fallback timer: if app doesn't open in 3 sec, redirect to fallback
     fallbackTimerRef.current = setTimeout(() => {
       if (!fallbackTriggered) {
         fallbackTriggered = true;
         setStatus("Redirecting to fallback...");
-        addLog("⏳ App not opened → Redirecting to fallback URL.");
+        addLog("⏳ Fallback triggered → redirecting to callback manually.");
         window.location.href = callbackUrl + "?fallback=true";
       }
     }, 3000);
@@ -185,6 +169,7 @@ const TruecallerVerify = () => {
     <div style={{ textAlign: "center", padding: "2rem" }}>
       <h1>📲 Verify with Truecaller</h1>
       <button
+        onClick={handleVerifyClick}
         style={{
           backgroundColor: "#1e88e5",
           color: "white",
@@ -194,12 +179,13 @@ const TruecallerVerify = () => {
           borderRadius: "8px",
           cursor: "pointer",
         }}
-        onClick={handleVerifyClick}
       >
         Verify My Number
       </button>
 
-      <div style={{ marginTop: "1rem", fontWeight: "bold", minHeight: "1.5rem" }}>{status}</div>
+      <div style={{ marginTop: "1rem", fontWeight: "bold", minHeight: "1.5rem" }}>
+        {status}
+      </div>
 
       <div
         ref={logRef}
