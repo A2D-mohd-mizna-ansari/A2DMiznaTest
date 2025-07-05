@@ -10,6 +10,7 @@ const TruecallerVerify = () => {
   const partnerName = "Test";
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
+  const redirectUri = "https://a2-d-mizna-test.vercel.app/truecaller/callback"; // Make sure this is your frontend handler
 
   const addLog = (msg) => {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} → ${msg}`]);
@@ -22,10 +23,10 @@ const TruecallerVerify = () => {
 
   const handleVerifyClick = () => {
     const nonce = requestNonce.current;
-    setStatus("Redirecting to Truecaller...");
+    setStatus("Attempting Truecaller verification...");
     addLog(`🔑 Nonce: ${nonce}`);
 
-    const truecallerURL = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
+    const deepLink = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
       nonce
     )}&partnerKey=${encodeURIComponent(partnerKey)}&partnerName=${encodeURIComponent(
       partnerName
@@ -35,7 +36,19 @@ const TruecallerVerify = () => {
       termsUrl
     )}&loginPrefix=Verify%20with%20Truecaller&ctaPrefix=Continue%20with%20Truecaller&ctaColor=%231e88e5&ctaTextColor=%23ffffff&btnShape=round&skipOption=Use%20another%20method&ttl=60000`;
 
-    window.location.href = truecallerURL;
+    const fallbackWebUrl = `https://api4.truecaller.com/v1/auth?requestNonce=${encodeURIComponent(
+      nonce
+    )}&partnerKey=${encodeURIComponent(partnerKey)}&redirectUri=${encodeURIComponent(redirectUri)}`;
+
+    // Open deep link
+    window.location.href = deepLink;
+
+    // Start fallback timer
+    setTimeout(() => {
+      addLog("⚠️ App not opened, redirecting to fallback web UI...");
+      setStatus("Fallback triggered. Opening Truecaller Web UI...");
+      window.location.href = fallbackWebUrl;
+    }, 2000); // if app not opened in 2 sec, fallback
   };
 
   return (
