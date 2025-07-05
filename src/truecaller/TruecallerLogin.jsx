@@ -9,8 +9,8 @@ const TruecallerLogin = () => {
 
   const handleLogin = () => {
     const requestNonce = generateNonce();
-    const partnerKey = 'RHbfG6eb16d266eac46d2b4143ca3aa251ca0';
-    const redirectUri = 'http://localhost:3000/truecaller/callback';
+    const partnerKey = 'NdYnR43e796fb8a024fa697e2bed406d6e82f';
+    const redirectUri = 'https://a2-d-mizna-test.vercel.app/truecaller/callback';
 
     const url = `https://api4.truecaller.com/v1/auth?requestNonce=${requestNonce}&partnerKey=${partnerKey}&redirectUri=${encodeURIComponent(redirectUri)}`;
     window.location.href = url;

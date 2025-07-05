@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const TRUECALLER_PARTNER_KEY = 'YOUR_PARTNER_KEY';
+const TRUECALLER_PARTNER_KEY = 'NdYnR43e796fb8a024fa697e2bed406d6e82f';
 
 app.post('/api/v1/truecaller-login', async (req, res) => {
   const { payload, signature } = req.body;
