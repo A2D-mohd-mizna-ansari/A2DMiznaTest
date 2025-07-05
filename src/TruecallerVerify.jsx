@@ -7,9 +7,8 @@ const TruecallerVerify = () => {
   const requestNonce = useRef("req_" + Date.now());
 
   const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
-  const partnerName = "Test";
-  const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
-  const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
+  const redirectUri = "https://a2-d-mizna-test.vercel.app/truecaller/callback"; // must be registered
+  const backendVerifyUrl = "https://a2dmiznatest.onrender.com/verify-status";
 
   const addLog = (msg) => {
     setLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} → ${msg}`]);
@@ -23,12 +22,10 @@ const TruecallerVerify = () => {
   const checkVerificationStatus = async (nonce) => {
     try {
       addLog("📡 Checking verification status from backend...");
-      const res = await fetch(
-        `https://a2dmiznatest.onrender.com/verify-status?nonce=${encodeURIComponent(nonce)}`
-      );
+      const res = await fetch(`${backendVerifyUrl}?nonce=${encodeURIComponent(nonce)}`);
       if (!res.ok) {
         addLog(`❌ Backend responded with status: ${res.status}`);
-        setStatus("❌ Verification failed. Please try again.");
+        setStatus("❌ Verification failed.");
         return;
       }
 
@@ -41,34 +38,28 @@ const TruecallerVerify = () => {
         setStatus("❌ Verification not completed.");
       }
     } catch (err) {
-      addLog("❌ Error fetching verification status: " + err.message);
-      setStatus("⚠️ Failed to verify user.");
+      addLog("❌ Error checking status: " + err.message);
+      setStatus("⚠️ Failed to verify.");
     }
   };
 
   const handleVerifyClick = () => {
     const nonce = requestNonce.current;
-    setStatus("Redirecting to Truecaller...");
+    setStatus("Opening Truecaller Web UI...");
     addLog(`🔑 Nonce generated: ${nonce}`);
 
-    const truecallerURL = `truecallersdk://truesdk/web_verify?type=btmsheet&requestNonce=${encodeURIComponent(
+    const truecallerWebUrl = `https://api4.truecaller.com/v1/auth?requestNonce=${encodeURIComponent(
       nonce
-    )}&partnerKey=${encodeURIComponent(partnerKey)}&partnerName=${encodeURIComponent(
-      partnerName
-    )}&lang=en&privacyUrl=${encodeURIComponent(
-      privacyUrl
-    )}&termsUrl=${encodeURIComponent(
-      termsUrl
-    )}&loginPrefix=Verify%20with%20Truecaller&ctaPrefix=Continue%20with%20Truecaller&ctaColor=%231e88e5&ctaTextColor=%23ffffff&btnShape=round&skipOption=Use%20another%20method&ttl=60000`;
+    )}&partnerKey=${encodeURIComponent(partnerKey)}&redirectUri=${encodeURIComponent(redirectUri)}`;
 
-    addLog(`🌐 Opening Truecaller deep link: ${truecallerURL}`);
-    window.location.href = truecallerURL;
+    addLog(`🌐 Redirecting to Truecaller Web UI:\n${truecallerWebUrl}`);
+    window.location.href = truecallerWebUrl;
 
-    // Wait and check backend (user will return to site via redirect)
+    // Optional: check status after a delay (if user comes back to page)
     setTimeout(() => {
-      addLog("⏳ Waiting 5s before checking verification status...");
+      addLog("⏳ Waiting 6s before checking backend status...");
       checkVerificationStatus(nonce);
-    }, 5000);
+    }, 6000);
   };
 
   return (
