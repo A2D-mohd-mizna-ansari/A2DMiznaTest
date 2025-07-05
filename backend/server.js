@@ -13,7 +13,7 @@ const verificationMap = new Map();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Enhanced request logger middleware
+// ✅ Universal logger — logs every request (hit or not)
 app.use((req, res, next) => {
   console.log(`➡️  ${req.method} ${req.originalUrl}`);
 
@@ -32,7 +32,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Truecaller fallback handler
+// ✅ Truecaller fallback handler
 app.get("/truecaller/callback", (req, res) => {
   if (req.query.fallback === "true") {
     console.log("⚠️  Fallback triggered: user does not have Truecaller app.");
@@ -42,7 +42,7 @@ app.get("/truecaller/callback", (req, res) => {
   res.status(400).send("❌ Invalid access to /truecaller/callback");
 });
 
-// Truecaller verification handler
+// ✅ Truecaller verification handler
 app.post("/truecaller/callback", (req, res) => {
   const data = req.body;
   console.log("✅ Received verification from Truecaller:", data);
@@ -55,7 +55,7 @@ app.post("/truecaller/callback", (req, res) => {
   res.send("✅ Verification received!");
 });
 
-// Polling endpoint to check verification status
+// ✅ Polling endpoint to check verification status
 app.get("/verify-status", (req, res) => {
   const { nonce } = req.query;
 
@@ -69,19 +69,25 @@ app.get("/verify-status", (req, res) => {
   res.json({ verified: false });
 });
 
-// 404 handler
+// ✅ Catch-all logger before 404 (optional but useful)
+app.use((req, res, next) => {
+  console.log(`⚠️  No route matched for ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// ✅ 404 handler
 app.use((req, res) => {
   console.warn(`❌ 404 Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).send("Not Found");
 });
 
-// Error handler
+// ✅ Error handler
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.stack);
   res.status(500).send("Internal Server Error");
 });
 
-// Start server
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
