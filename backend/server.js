@@ -1,22 +1,44 @@
-// server.js
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import truecallerRoutes from './routes/truecaller.js'; // Note the `.js` extension
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const app = express();
-app.use(express.json());
-app.use(cors({
-  origin: 'https://a2-d-mizna-test.vercel.app',
-  credentials: true
-}));
-app.use('/truecaller', truecallerRoutes);
+const PORT = process.env.PORT || 3000;
 
-mongoose.connect('mongodb+srv://miznaansari:2sAc7wuwKHHzfnoh@mizna.jfncd.mongodb.net/truecallerDB?retryWrites=true&w=majority&appName=Mizna', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+// Enable CORS if frontend and backend are on different domains
+app.use(cors());
+
+// Parse JSON body (Truecaller sends JSON POST)
+app.use(bodyParser.json());
+
+// GET callback for fallback or invalid accesses
+app.get("/truecaller/callback", (req, res) => {
+  if (req.query.fallback === "true") {
+    console.log("Fallback triggered: user does not have Truecaller app installed.");
+
+    // Redirect to frontend fallback page (manual verification)
+    return res.redirect("https://a2-d-mizna-test.vercel.app/fallback");
+  }
+
+  res.status(400).send("Invalid access to /truecaller/callback");
 });
-mongoose.connection.once('open', () => console.log('MongoDB connected'));
 
-const PORT = 4000;
-app.listen(PORT, () => console.log(`Backend listening on ${PORT}`));
+// POST callback to handle Truecaller verification data
+app.post("/truecaller/callback", (req, res) => {
+  const verificationData = req.body;
+
+  console.log("Received Truecaller verification data:", verificationData);
+
+  // TODO: 
+  // 1. Validate the data and signature as per Truecaller docs
+  // 2. Save user data / verification status in your DB
+  // 3. Respond with 200 OK to acknowledge receipt
+
+  res.sendStatus(200);
+});
+
+// Optional: fallback page or other routes can go here
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
