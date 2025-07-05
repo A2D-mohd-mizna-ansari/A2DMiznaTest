@@ -17,22 +17,22 @@ const TruecallerVerify = () => {
     }, 10);
   };
 
-  // Intercept console messages
+  // Intercept console messages to also show in logs div
   useEffect(() => {
     const originalLog = console.log;
     const originalWarn = console.warn;
     const originalError = console.error;
 
     console.log = (...args) => {
-      addLog("LOG: " + args.join(" "));
+      addLog("LOG: " + args.map(String).join(" "));
       originalLog(...args);
     };
     console.warn = (...args) => {
-      addLog("WARN: " + args.join(" "));
+      addLog("WARN: " + args.map(String).join(" "));
       originalWarn(...args);
     };
     console.error = (...args) => {
-      addLog("ERROR: " + args.join(" "));
+      addLog("ERROR: " + args.map(String).join(" "));
       originalError(...args);
     };
 
@@ -83,11 +83,13 @@ const TruecallerVerify = () => {
               `https://a2dmiznatest.onrender.com/verify-status?nonce=${nonce}`
             );
             const result = await res.json();
+            addLog("Poll response: " + JSON.stringify(result));
 
             if (result.verified) {
               clearInterval(poll);
               console.log("✅ Verification success:", result.data);
               setStatus("✅ Number verified successfully!");
+              addLog("✅ Verification success: " + JSON.stringify(result.data));
             } else {
               addLog("❓ Still not verified.");
               if (attempts >= 10) {
@@ -100,6 +102,7 @@ const TruecallerVerify = () => {
             clearInterval(poll);
             console.error("Error during polling:", err);
             setStatus("⚠️ Error while checking verification.");
+            addLog("⚠️ Polling error: " + err.message);
           }
         }, 3000);
       }
@@ -122,6 +125,7 @@ const TruecallerVerify = () => {
     });
 
     addLog("🚀 Redirecting to deep link...");
+    console.log("Redirecting to Truecaller deep link:", deepLink);
     window.location.href = deepLink;
 
     const fallbackTimer = setTimeout(() => {
@@ -172,7 +176,7 @@ const TruecallerVerify = () => {
           textAlign: "left",
         }}
       >
-        <strong>Debug Logs1:</strong>
+        <strong>Debug Logs:</strong>
         <br />
         {logs.map((log, i) => (
           <div key={i}>{log}</div>
