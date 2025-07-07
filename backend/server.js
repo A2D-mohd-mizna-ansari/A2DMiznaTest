@@ -47,13 +47,13 @@ app.post("/truecaller/callback", async (req, res) => {
   const data = req.body;
   console.log("✅ Received verification from Truecaller:", data);
 
-  if (!data.requestNonce) {
+  if (!data.requestId) {
     console.log("❌ Missing requestNonce in callback body.");
     return res.status(400).send("Missing requestNonce");
   }
 
   // Store the verification data keyed by nonce
-  verificationMap.set(data.requestNonce, data);
+  verificationMap.set(data.requestId, data);
 
   // If there's accessToken and endpoint, fetch profile
   if (data.accessToken && data.endpoint) {
