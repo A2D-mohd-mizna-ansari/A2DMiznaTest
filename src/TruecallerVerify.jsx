@@ -126,27 +126,6 @@ useEffect(() => {
 
     // Call callback API first to simulate verification completed
     // (Your server expects this callback to mark the nonce as verified)
-    const callCallbackAPI = async () => {
-      try {
-        addLog(`➡️ Calling callback API to mark nonce verified...`);
-        const res = await fetch(callbackUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            requestNonce: nonce,
-            verified: true,
-            data: {
-              phone: "+1234567890",
-              otherField: "value",
-            },
-          }),
-        });
-        const result = await res.json();
-        addLog("⬅️ Callback API response: " + JSON.stringify(result));
-      } catch (err) {
-        addLog("❌ Callback API error: " + err.message);
-      }
-    };
 
     const startPolling = () => {
       setStatus("Truecaller app opened. Starting polling...");
@@ -226,7 +205,7 @@ useEffect(() => {
         fallbackTriggered = true;
         addLog("⚠️ App not detected. Going to fallback.");
         setStatus("Redirecting to fallback...");
-        window.location.href = callbackUrl + "?fallback=true";
+        // window.location.href = callbackUrl + "?fallback=true";
       }
     }, 3000);
 
