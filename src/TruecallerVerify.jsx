@@ -98,7 +98,7 @@ useEffect(() => {
     };
   }, []);
 
-  const partnerKey = "NdYnR43e796fb8a024fa697e2bed406d6e82f";
+  const partnerKey = "7z4T31475d484c7454a759a6f0789f4ec89a1";
   const partnerName = "Test";
   const privacyUrl = "https://a2-d-mizna-test.vercel.app/privacy";
   const termsUrl = "https://a2-d-mizna-test.vercel.app/terms";
