@@ -144,16 +144,16 @@ const TruecallerVerify = () => {
     // Detect if app was opened by listening to visibility and focus events
     const onVisibilityChange = () => {
       if (document.hidden) {
-        addLog("📱 visibilitychange → Document hidden, assuming app opened.");
+        // addLog("📱 visibilitychange → Document hidden, assuming app opened.");
         cancelFallback();
       }
     };
     const onBlur = () => {
-      addLog("📱 blur → Window lost focus.");
+      // addLog("📱 blur → Window lost focus.");
       cancelFallback();
     };
     const onPageHide = () => {
-      addLog("📱 pagehide → Page hide event.");
+      // addLog("📱 pagehide → Page hide event.");
       cancelFallback();
     };
 
