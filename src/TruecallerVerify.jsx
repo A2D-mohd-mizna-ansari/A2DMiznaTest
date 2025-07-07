@@ -148,14 +148,8 @@ const TruecallerVerify = () => {
         cancelFallback();
       }
     };
-    const onBlur = () => {
-      addLog("📱 blur → Window lost focus.");
-      cancelFallback();
-    };
-    const onPageHide = () => {
-      addLog("📱 pagehide → Page hide event.");
-      cancelFallback();
-    };
+  
+
 
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("blur", onBlur);
@@ -164,8 +158,7 @@ const TruecallerVerify = () => {
     addLog("🚀 Redirecting to deep link...");
     window.location.href = deepLink;
 
-    // Call callback API immediately after deep link redirect to simulate verification done
-    await callCallbackAPI();
+   
 
     const fallbackTimer = setTimeout(() => {
       if (!fallbackTriggered) {
@@ -212,7 +205,7 @@ const TruecallerVerify = () => {
         style={{
           marginTop: "2rem",
           padding: "1rem",
-          height: "250px",
+          height: "100%",
           width: "100%",
           maxWidth: "400px",
           overflowY: "scroll",
