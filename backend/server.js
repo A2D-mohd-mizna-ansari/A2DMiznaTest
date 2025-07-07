@@ -53,7 +53,7 @@ app.post("/truecaller/callback", async (req, res) => {
   }
 
   // Store the verification data keyed by nonce
-  verificationMap.set(data.requestId, data);
+  // verificationMap.set(data.requestId, data);
 
   // If there's accessToken and endpoint, fetch profile
   if (data.accessToken && data.endpoint) {
@@ -91,7 +91,7 @@ app.post("/truecaller/callback", async (req, res) => {
       console.log("📦 UserData:", userData);
 
       // Attach to verification map
-      verificationMap.set(data.requestNonce, {
+      verificationMap.set(data.requestId, {
         ...data,
         userData,
       });
