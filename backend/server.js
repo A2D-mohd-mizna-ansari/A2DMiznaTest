@@ -48,6 +48,7 @@ app.post("/truecaller/callback", async (req, res) => {
   console.log("✅ Received verification from Truecaller:", data);
 
   if (!data.requestNonce) {
+    console.log("❌ Missing requestNonce in callback body.");
     return res.status(400).send("Missing requestNonce");
   }
 
@@ -57,15 +58,29 @@ app.post("/truecaller/callback", async (req, res) => {
   // If there's accessToken and endpoint, fetch profile
   if (data.accessToken && data.endpoint) {
     try {
+      console.log("🌐 Fetching Truecaller profile from:", data.endpoint);
+
       const response = await fetch(data.endpoint, {
         headers: {
           Authorization: `Bearer ${data.accessToken}`,
         },
       });
 
-      const profile = await response.json();
+      console.log("📥 Truecaller profile response status:", response.status);
 
-      // Extract only required fields
+      const raw = await response.text(); // read as text for better error debugging
+      console.log("📄 Raw profile response body:", raw);
+
+      let profile;
+      try {
+        profile = JSON.parse(raw);
+      } catch (e) {
+        console.error("❌ Failed to parse Truecaller response as JSON.");
+        return res.status(500).send("Invalid profile response from Truecaller.");
+      }
+
+      console.log("🧩 Parsed Truecaller profile:", profile);
+
       const userData = {
         number: profile.phoneNumbers?.[0],
         firstName: profile.name?.first || "",
@@ -75,7 +90,7 @@ app.post("/truecaller/callback", async (req, res) => {
 
       console.log("📦 UserData:", userData);
 
-      // Optionally attach to verification map
+      // Attach to verification map
       verificationMap.set(data.requestNonce, {
         ...data,
         userData,
@@ -83,13 +98,14 @@ app.post("/truecaller/callback", async (req, res) => {
 
       return res.send("✅ Verification received!");
     } catch (err) {
-      console.error("❌ Error fetching profile from Truecaller:", err.message);
+      console.error("❌ Error fetching or processing Truecaller profile:", err);
       return res.status(500).send("Failed to fetch user profile from Truecaller.");
     }
   }
 
   res.send("✅ Verification received (no accessToken provided).");
 });
+
 // Polling endpoint to check verification status by nonce
 app.get("/verify-status", (req, res) => {
   const { nonce } = req.query;
