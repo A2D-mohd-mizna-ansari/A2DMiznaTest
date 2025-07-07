@@ -114,6 +114,7 @@ app.get("/verify-status", (req, res) => {
 
   const verifiedData = verificationMap.get(nonce);
   if (verifiedData) {
+    console.log('verifyData',verifiedData)
     return res.json({ verified: true, data: verifiedData });
   }
 
@@ -136,3 +137,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+
+app.post("/truecaller/callback", async (req, res) => {
+  const data = req.body;
+
+})
