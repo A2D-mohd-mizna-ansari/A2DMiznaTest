@@ -20,11 +20,14 @@ useEffect(() => {
         data = await clonedResponse.text(); // fallback if not JSON
       }
 
+      const method =
+        options?.method?.toUpperCase() || (options?.body ? "POST" : "GET");
+
       setApiLogs(prev => [
         ...prev,
         {
           url,
-          method: options?.method || "GET",
+          method,
           status: response.status,
           response: data,
         },
@@ -32,11 +35,14 @@ useEffect(() => {
 
       return response;
     } catch (err) {
+      const method =
+        options?.method?.toUpperCase() || (options?.body ? "POST" : "GET");
+
       setApiLogs(prev => [
         ...prev,
         {
           url,
-          method: options?.method || "GET",
+          method,
           error: err.message,
         },
       ]);
