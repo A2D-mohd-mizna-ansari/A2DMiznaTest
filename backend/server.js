@@ -139,7 +139,7 @@ app.listen(PORT, () => {
 });
 
 
-app.post("/truecaller/callback", async (req, res) => {
-  const data = req.body;
+// app.post("/truecaller/callback", async (req, res) => {
+//   const data = req.body;
 
-})
+// })
