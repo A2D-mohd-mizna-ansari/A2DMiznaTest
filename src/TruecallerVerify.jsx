@@ -140,6 +140,52 @@ const TruecallerVerify = () => {
         startPolling();
       }
     };
+const [apiLogs, setApiLogs] = useState([]);
+useEffect(() => {
+  const originalFetch = window.fetch;
+
+  window.fetch = async (...args) => {
+    const [url, options] = args;
+
+    try {
+      const response = await originalFetch(...args);
+      const clonedResponse = response.clone();
+
+      let data;
+      try {
+        data = await clonedResponse.json();
+      } catch (e) {
+        data = await clonedResponse.text(); // fallback if not JSON
+      }
+
+      setApiLogs(prev => [
+        ...prev,
+        {
+          url,
+          method: options?.method || "GET",
+          status: response.status,
+          response: data,
+        },
+      ]);
+
+      return response;
+    } catch (err) {
+      setApiLogs(prev => [
+        ...prev,
+        {
+          url,
+          method: options?.method || "GET",
+          error: err.message,
+        },
+      ]);
+      throw err;
+    }
+  };
+
+  return () => {
+    window.fetch = originalFetch; // restore on cleanup
+  };
+}, []);
 
     // Detect if app was opened by listening to visibility and focus events
     const onVisibilityChange = () => {
@@ -249,6 +295,45 @@ const TruecallerVerify = () => {
           📋 Copy Logs
         </button>
       </div>
+
+      <div
+  style={{
+    marginTop: "2rem",
+    padding: "1rem",
+    height: "250px",
+    width: "100%",
+    maxWidth: "500px",
+    overflowY: "scroll",
+    backgroundColor: "#222",
+    color: "#ddd",
+    fontFamily: "monospace",
+    fontSize: "12px",
+    borderRadius: "8px",
+    marginLeft: "auto",
+    marginRight: "auto",
+    textAlign: "left",
+  }}
+>
+  <strong>Debug API Logs:</strong>
+  <br />
+  {apiLogs.map((log, i) => (
+    <div key={i} style={{ marginBottom: "0.5rem" }}>
+      🔗 <strong>{log.method}</strong> {log.url}
+      <br />
+      {log.error ? (
+        <span style={{ color: "red" }}>❌ Error: {log.error}</span>
+      ) : (
+        <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          {typeof log.response === "object"
+            ? JSON.stringify(log.response, null, 2)
+            : log.response}
+        </pre>
+      )}
+      <hr />
+    </div>
+  ))}
+</div>
+
     </div>
   );
 };
