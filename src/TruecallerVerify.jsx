@@ -1,6 +1,55 @@
 import { useState, useEffect, useRef } from "react";
 
 const TruecallerVerify = () => {
+
+const [apiLogs, setApiLogs] = useState([]);
+useEffect(() => {
+  const originalFetch = window.fetch;
+
+  window.fetch = async (...args) => {
+    const [url, options] = args;
+
+    try {
+      const response = await originalFetch(...args);
+      const clonedResponse = response.clone();
+
+      let data;
+      try {
+        data = await clonedResponse.json();
+      } catch (e) {
+        data = await clonedResponse.text(); // fallback if not JSON
+      }
+
+      setApiLogs(prev => [
+        ...prev,
+        {
+          url,
+          method: options?.method || "GET",
+          status: response.status,
+          response: data,
+        },
+      ]);
+
+      return response;
+    } catch (err) {
+      setApiLogs(prev => [
+        ...prev,
+        {
+          url,
+          method: options?.method || "GET",
+          error: err.message,
+        },
+      ]);
+      throw err;
+    }
+  };
+
+  return () => {
+    window.fetch = originalFetch; // restore on cleanup
+  };
+}, []);
+
+
   const [status, setStatus] = useState("");
   const [logs, setLogs] = useState([]);
   const logRef = useRef(null);
@@ -140,52 +189,6 @@ const TruecallerVerify = () => {
         startPolling();
       }
     };
-const [apiLogs, setApiLogs] = useState([]);
-useEffect(() => {
-  const originalFetch = window.fetch;
-
-  window.fetch = async (...args) => {
-    const [url, options] = args;
-
-    try {
-      const response = await originalFetch(...args);
-      const clonedResponse = response.clone();
-
-      let data;
-      try {
-        data = await clonedResponse.json();
-      } catch (e) {
-        data = await clonedResponse.text(); // fallback if not JSON
-      }
-
-      setApiLogs(prev => [
-        ...prev,
-        {
-          url,
-          method: options?.method || "GET",
-          status: response.status,
-          response: data,
-        },
-      ]);
-
-      return response;
-    } catch (err) {
-      setApiLogs(prev => [
-        ...prev,
-        {
-          url,
-          method: options?.method || "GET",
-          error: err.message,
-        },
-      ]);
-      throw err;
-    }
-  };
-
-  return () => {
-    window.fetch = originalFetch; // restore on cleanup
-  };
-}, []);
 
     // Detect if app was opened by listening to visibility and focus events
     const onVisibilityChange = () => {
@@ -295,7 +298,6 @@ useEffect(() => {
           📋 Copy Logs
         </button>
       </div>
-
       <div
   style={{
     marginTop: "2rem",
