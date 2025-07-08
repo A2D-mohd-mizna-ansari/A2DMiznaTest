@@ -59,8 +59,9 @@ app.post("/truecaller/callback", async (req, res) => {
   if (data.accessToken && data.endpoint) {
     try {
       console.log("🌐 Fetching Truecaller profile from:", data.endpoint);
-      const origin = req.headers.origin || req.headers.referer || "Unknown origin";
-      console.log("🌍 Request received from origin:", origin);
+      const originIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      console.log("🌍 Callback received from IP:", originIp);
+
 
       console.log("✅ Received verification from Truecaller:", data);
 
