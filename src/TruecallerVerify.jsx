@@ -138,7 +138,7 @@ useEffect(() => {
 
         try {
           const res = await fetch(
-            `https://91tj1q3l-3000.inc1.devtunnels.ms/verify-status?nonce=${nonce}`
+            `https://a2dmiznatest.onrender.com/verify-status?nonce=${nonce}`
           );
           const result = await res.json();
           addLog("Poll response: " + JSON.stringify(result));
