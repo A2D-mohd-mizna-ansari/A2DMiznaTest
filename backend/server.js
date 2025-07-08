@@ -59,6 +59,10 @@ app.post("/truecaller/callback", async (req, res) => {
   if (data.accessToken && data.endpoint) {
     try {
       console.log("🌐 Fetching Truecaller profile from:", data.endpoint);
+      const origin = req.headers.origin || req.headers.referer || "Unknown origin";
+      console.log("🌍 Request received from origin:", origin);
+
+      console.log("✅ Received verification from Truecaller:", data);
 
       const response = await fetch(data.endpoint, {
         headers: {
@@ -114,7 +118,7 @@ app.get("/verify-status", (req, res) => {
 
   const verifiedData = verificationMap.get(nonce);
   if (verifiedData) {
-    console.log('verifyData',verifiedData)
+    console.log('verifyData', verifiedData)
     return res.json({ verified: true, data: verifiedData });
   }
 
